@@ -38,7 +38,37 @@ void DFA::print() {
 }
 
 string DFA::codify() {
-	string sw = "";
+	ostringstream os;
+	//Code called for each token
+	os << "const char* token(int id){switch(id){" << endl;
+	for (int i = 0; i < states->size(); i++) {
+		DState* ds = (*states)[i];
+		if (ds->code.length()) os << "case " << ds->id << ": " << ds->code << "break;" << endl;
+	}
+	os << "} return "";}";
+	//DFA array
+	os << "int dfa[][128]={";
+	for (int i = 0; i < states->size(); i++) {
+		cout << "{";
+		DState* ds = (*states)[i];
+		if (ds->code.length()) os << (ds->code.length() ? 1 : -1) << ", ";
+		for (int ch = 1; ch < 128; ch++) {
+			os << (ds->edges->find(ch) == ds->edges->end() ? -1 : ds->edges->at(ch));
+			os << (ch == 127 ? "}" : ", ");
+		}
+		os << (i + 1 == states->size() ? "}};" : ", ") << endl;
+	}
+	//yylex function
+	os << "int yylex(char* is) {int state = 0, ptr = 0, ns=0;while (*is) {ns=dfa[state][*is];" << endl
+		<< "if(ns >= 0) { state = ns; yy_text[ptr++] = *is; yy_text[ptr] = 0; }" << endl
+		<< "else {if (state == 0) { if (*is == '\\0') return 0; else return 1; }" << endl
+		<< "else if (dfa[state][0]<0) { return 1; }" << endl
+		<< "else {const char* t = token(state); if (*t) {" << endl
+		<< "yyout(\"<\"); yyout(token(state)); yyout(\">\");" << endl
+		<< "if (printAll) yyout(yy_text); yyout(\"\\n\");}" << endl
+		<< "state = 0; memset(yy_text, '\\0', YY_SIZE); ptr = 0; is--;}}" << endl
+		<< "if (!*is) break; is++;}return 1; }" << endl;
+	return os.str();
 }
 
 DFA::DFA() {

@@ -49,14 +49,14 @@ string DFA::codify() {
 	//DFA array
 	os << "int dfa[][128]={";
 	for (int i = 0; i < states->size(); i++) {
-		cout << "{";
+		os << "{";
 		DState* ds = (*states)[i];
-		if (ds->code.length()) os << (ds->code.length() ? 1 : -1) << ", ";
+		os << (ds->code.length() ? 1 : -1) << ", ";
 		for (int ch = 1; ch < 128; ch++) {
 			os << (ds->edges->find(ch) == ds->edges->end() ? -1 : ds->edges->at(ch));
 			os << (ch == 127 ? "}" : ", ");
 		}
-		os << (i + 1 == states->size() ? "}};" : ", ") << endl;
+		os << (i + 1 == states->size() ? "};" : ", ") << endl;
 	}
 	//yylex function
 	os << "int yylex(char* is) {int state = 0, ptr = 0, ns=0;while (*is) {ns=dfa[state][*is];" << endl

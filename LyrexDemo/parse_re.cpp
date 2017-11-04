@@ -68,7 +68,7 @@ NFA * REtoNFA::parseCharset(string re) {
 	/*[^...] case*/
 	if (nega) {
 		unordered_set<char>* whole = new unordered_set<char>;
-		for (char c = '\b'; c <= '\t'; c++) whole->insert(c);
+		for (char c = '\b'; c <= '\r'; c++) whole->insert(c);
 		for (char c = ' '; c <= '~'; c++) whole->insert(c);
 		for (unordered_set<char>::iterator it = cset->begin(); it != cset->end(); it++) {
 			whole->erase(*it);

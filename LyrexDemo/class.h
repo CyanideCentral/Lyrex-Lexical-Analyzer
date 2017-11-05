@@ -105,7 +105,7 @@ public:
 	DState* newDState();
 	void print();
 	string codify();
-	void minimize();
+	DFA* minimize();
 };
 
 class REtoNFA {

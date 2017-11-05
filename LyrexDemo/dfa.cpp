@@ -19,10 +19,15 @@ DState * DFA::newDState() {
 
 void DFA::print() {
 	//cout << tokenMap->begin()->first << endl;
+	bool min = false;
+	if (!states->empty() && (*states)[0]->nstates) {
+		min = true;
+		cout << "Minimized DFA:" << endl;
+	}
 	for (int i = 0; i < states->size(); i++) {
 		DState* cur = (*states)[i];
 		printf("State %d (", cur->id);
-		for (unordered_set<int>::iterator it = cur->nstates->begin(); it != cur->nstates->end(); it++) {
+		if(!min) for (unordered_set<int>::iterator it = cur->nstates->begin(); it != cur->nstates->end(); it++) {
 			cout << *it << " ";
 		}
 		printf(") edges:");
@@ -69,7 +74,7 @@ string DFA::codify() {
 	return os.str();
 }
 
-void DFA::minimize() {
+DFA* DFA::minimize() {
 	vector<unordered_set<int>*>* ptt = new vector<unordered_set<int>*>;
 	unordered_map<int, int> loc = unordered_map<int, int>();
 	//Partition by different accepting state
@@ -100,23 +105,74 @@ void DFA::minimize() {
 			vector<unordered_set<int>*>* sub = new vector<unordered_set<int>*>;
 			for (unordered_set<int>::iterator it = s->begin(); it != s->end();it++) {
 				bool fit = false;
-				for (int j = 0; j < ptt->size(); j++) {
-					if ((*states)[*((*ptt)[j]->begin())]->code.compare((*states)[i]->code) == 0) {
+				for (int j = 0; j < sub->size(); j++) {
+					bool eqv = true;
+					unordered_map<int, int>* e = (*states)[*it]->edges;
+					unordered_map<int, int>* f = (*states)[*(*sub)[j]->begin()]->edges;
+					if (e->size() != f->size()) {
+						eqv = false;
+					}
+					if(eqv) for (unordered_map<int, int>::iterator ch = e->begin(); ch != e->end(); ch++) {
+						if (f->find(ch->first) == f->end()) {
+							eqv = false;
+							break;
+						}
+						if (loc[(*f)[ch->first]] != loc[(*e)[ch->first]]) {
+							eqv = false;
+							break;
+						}
+					}
+					if (eqv) {
 						fit = true;
-						(*ptt)[j]->insert(i);
-						loc[i] = j;
+						(*sub)[j]->insert(*it);
 						break;
 					}
 				}
 				if (!fit) {
 					unordered_set<int>* s = new unordered_set<int>;
-					s->insert(i);
-					ptt->push_back(s);
-					loc[i] = ptt->size() - 1;
+					s->insert(*it);
+					sub->push_back(s);
 				}
 			}
+			if (sub->size() == 1) {
+				delete (*sub)[0];
+				delete sub;
+			}
+			else {
+				delete (*ptt)[i];
+				(*ptt)[i] = (*sub)[0];
+				for (int k = 1; k < sub->size(); k++) {
+					ptt->push_back((*sub)[k]);
+					unordered_set<int>* nset = (*sub)[k];
+					for (unordered_set<int>::iterator it2 = nset->begin(); it2 != nset->end(); it2++) {
+						loc[*it2] = ptt->size() - 1;
+					}
+				}
+				delete sub;
+				min = false;
+				break;
+			}
+			if (!min) break;
+			i++;
 		}
 	}
+	vector<DState*>* m = new vector<DState*>;
+	for (int i = 0; i < ptt->size(); i++) {
+		DState* ds = new DState;
+		ds->id = i;
+		delete ds->nstates;
+		ds->nstates = NULL;
+		unordered_map<int, int>* old = (*states)[*((*ptt)[i]->begin())]->edges;
+		for (unordered_map<int, int>::iterator it = old->begin(); it != old->end(); it++) {
+			ds->edges->insert(pair<int, int>(it->first, loc[it->second]));
+		}
+	}
+	for (int i = 0; i < states->size(); i++) delete (*states)[i];
+	delete states;
+	delete ptt;
+	states = m;
+
+	return this;
 }
 
 DFA::DFA() {

@@ -132,7 +132,7 @@ int console() {
 		<< "gets_s(buf, BUF_SIZE);if (buf[0] == '-'&&buf[1] == 'c'&&buf[2] == '\\0') outmode = 1;" << endl
 		<< "errno_t err = fopen_s(&ofp, buf, \"w\");if (err) printf(\"Invalid path.\\n\");else break;}" << endl
 		<< "fseek(fp, 0, SEEK_END);int size = ftell(fp);" << endl
-		<< "char* input_buf = (char*)malloc(size);fseek(fp, 0, SEEK_SET);" << endl
+		<< "char* input_buf = (char*)malloc(size+1);fseek(fp, 0, SEEK_SET);" << endl
 		<< "fread_s(input_buf, size, sizeof(char), size, fp);" << endl
 		<< "yylex(input_buf);yywrap();getchar();return 0;}" << endl;
 	return 0;

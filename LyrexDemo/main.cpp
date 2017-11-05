@@ -24,7 +24,7 @@ void getInput() {
 void test() {
 	REtoNFA* rtn = new REtoNFA();
 	//rtn->parseToken("p{5,}ow\\ne{2,4}r.a+\\t((c|b)*[^ab89A-Z.a-z\\)\\\\]{,9})?", "test");
-	rtn->parseToken(".", "INT");
+	rtn->parseToken("abc{3,}", "INT");
 	rtn->toDFA()->print();
 
 	/*"pow\\nera+\\t((c|b)*[^ab89A-Z.a-z\\)\\\\]+)?"*/
@@ -40,9 +40,9 @@ void fun(const char* str) {
 }
 
 int main() {
-	//test();
+	test();
 	//fun(funfun());
-	console();
+	//console();
 	getchar();
 	return 0;
 }

@@ -16,10 +16,10 @@ using namespace std;
 
 int console();
 
+bool isDigit(int ch);
 string clean(string text);
 int readInt(string str, int loc);
 bool isEqual(unordered_set<int>* a, unordered_set<int>* b);
-unordered_set<int>* mergeSet(unordered_set<int>* a, unordered_set<int>* b);
 
 class State {
 private:
@@ -98,11 +98,9 @@ class DFA {
 private:
 public:
 	vector<DState*>* states;
-	unordered_map<int, string>* tokenMap;
 	
 	DFA();
 	~DFA();
-	void generateCode(string path);
 	DState* newDState();
 	void print();
 	string codify();
@@ -114,6 +112,7 @@ private:
 	unordered_map<string, NFA*>* dict;
 	/*mapping of state id to token function code*/
 	unordered_set<int>* accStates;
+	unordered_map<int, string>* tokenMap;
 	NFA_Gen* gen;
 	NFA* whole;
 	DFA* dfa;

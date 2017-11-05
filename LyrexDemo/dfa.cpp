@@ -10,9 +10,6 @@ DState::~DState() {
 	delete edges;
 }
 
-void DFA::generateCode(string path) {
-}
-
 DState * DFA::newDState() {
 	DState* ds = new DState;
 	states->push_back(ds);
@@ -21,7 +18,7 @@ DState * DFA::newDState() {
 }
 
 void DFA::print() {
-	cout << tokenMap->begin()->first << endl;
+	//cout << tokenMap->begin()->first << endl;
 	for (int i = 0; i < states->size(); i++) {
 		DState* cur = (*states)[i];
 		printf("State %d (", cur->id);
@@ -73,12 +70,10 @@ string DFA::codify() {
 
 DFA::DFA() {
 	states = new vector<DState*>;
-	tokenMap = new unordered_map<int, string>;
 }
 
 DFA::~DFA() {
 	delete states;
-	delete tokenMap;
 }
 
 DFA * REtoNFA::toDFA() {
@@ -112,8 +107,8 @@ DFA * REtoNFA::toDFA() {
 				created->nstates->insert(target->begin(), target->end());
 				cur->edges->insert(pair<int, int>(*it, created->id));
 				for (unordered_set<int>::iterator it = target->begin(); it != target->end(); it++) {
-					if (dfa->tokenMap->find(*it) != dfa->tokenMap->end()) {
-						created->code = dfa->tokenMap->at(*it);
+					if (tokenMap->find(*it) != tokenMap->end()) {
+						created->code = tokenMap->at(*it);
 						break;
 					}
 					else created->code = "";

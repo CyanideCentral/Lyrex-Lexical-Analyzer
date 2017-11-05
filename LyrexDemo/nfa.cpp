@@ -22,15 +22,6 @@ bool isEqual(unordered_set<int>* a, unordered_set<int>* b) {
 	return true;
 }
 
-unordered_set<int>* mergeSet(unordered_set<int>* kept, unordered_set<int>* b) {
-	if (!kept && !b) return new unordered_set<int>;
-	if (!kept) return b;
-	if (!b) return kept;
-	kept->insert(b->begin(), b->end());
-	delete b;
-	return kept;
-}
-
 NFA::NFA() {
 	states = new list<State*>;
 }

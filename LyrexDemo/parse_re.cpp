@@ -1,5 +1,9 @@
 #include"class.h"
 
+bool isDigit(int ch) {
+	return ch >= '0'&& ch <= '9';
+}
+
 int readInt(string str, int loc=0) {
 	while (loc < str.length() && (str[loc] < '0' || str[loc] >= '9')) loc++;
 	if (loc == str.length()) return -1;
@@ -85,7 +89,7 @@ NFA * REtoNFA::parseRepeated(string re, string lm) {
 	NFA* head, *tail;
 	/*Times determined*/
 	if ((comma = lm.find(',')) == string::npos) {
-		def = readInt(re);
+		def = readInt(lm);
 		ind = 0;
 	}
 	/*Times = 0-N*/
@@ -107,7 +111,7 @@ NFA * REtoNFA::parseRepeated(string re, string lm) {
 	/*(M-N) x (eps|a)*/
 	else {
 		tail = NULL;
-		for (int i = 0; i < ind; i++)tail = gen->concNFA(tail, gen->paralNFA(gen->getMinNFA(), parse(re)));
+		for (int i = 0; i < ind; i++)tail = gen->concNFA(tail, gen->paralNFA(parse(re), gen->getMinNFA()));
 	}
 
 	return gen->concNFA(head, tail);
@@ -197,7 +201,7 @@ NFA * REtoNFA::parse(string re) {
 	int repeat = 0, right = 0;
 	if (unary == '{') {
 		right = findPair(re, end + 1);
-		if (re.substr(end + 2, right - end - 2).find(',') != string::npos) repeat = 1;
+		if (isDigit(re[end+2])||re[end+2]==',') repeat = 1;
 	}
 	/*unary cannot be '\0'*/
 	if (repeat || (unary && strchr("+*?", unary))) {
@@ -236,7 +240,9 @@ NFA * REtoNFA::parse(string re) {
 				head = gen->concNFA(simple, parseRepeated(re.substr(end, 1), re.substr(end + 2, right - end - 2)));
 			}
 		}
-		end++;
+		//{M,N} is not considered
+		if (right) end = right;
+		else end++;
 	}
 	/*{M, N} case*/
 	else {
@@ -265,7 +271,7 @@ void REtoNFA::parseToken(string re, string code) {
 	re = preprocess(re);
 	NFA* atm = gen->addTerminals(parse(re));
 	atm->re = re;
-	dfa->tokenMap->insert(pair<int, string>(atm->end, code));
+	tokenMap->insert(pair<int, string>(atm->end, code));
 	lastState = atm->end;
 	accStates->insert(atm->end);
 	if (!whole) {
@@ -280,7 +286,7 @@ void REtoNFA::parseToken(string re, string code) {
 }
 
 void REtoNFA::appendCode(string code) {
-	(*dfa->tokenMap)[lastState] += code;
+	(*tokenMap)[lastState] += code;
 }
 
 unordered_set<int>* REtoNFA::epsClosure(int stateId) {
@@ -321,7 +327,7 @@ unordered_set<int>* REtoNFA::move(unordered_set<int>* from, int via) {
 void REtoNFA::reset() {
 	dict->clear();
 	whole = NULL;
-	dfa->tokenMap->clear();
+	tokenMap->clear();
 	accStates->clear();
 	gen->reset();
 }
@@ -332,6 +338,7 @@ REtoNFA::REtoNFA() {
 	dict = new unordered_map<string, NFA*>;
 	dfa = new DFA();
 	accStates = new unordered_set<int>;
+	tokenMap = new unordered_map<int, string>;
 }
 
 REtoNFA::~REtoNFA() {
@@ -339,4 +346,5 @@ REtoNFA::~REtoNFA() {
 	delete gen;
 	/*Do not delete dfa or nfa*/
 	delete accStates;
+	delete tokenMap;
 }

@@ -879,7 +879,9 @@ int yylex(char* is) {int state = 0, ptr = 0, ns=0;while (*is) {ns=dfa[state][*is
 if(ns >= 0) { state = ns; yy_text[ptr++] = *is; yy_text[ptr]=0; }
 else {if (state == 0) { if (*is == '\0') return 0; else return 1; }
 else if (dfa[state][0]<0) { return 1; }
-else { yyout("<"); yyout(token(state)); yyout(">"); if(printAll) yyout(yy_text); yyout("\n"); state = 0; memset(yy_text, '\0', YY_SIZE); ptr = 0; is--; }}
+else { const char* t=token(state);if(*t){yyout("<"); yyout(token(state)); yyout(">");
+if(printAll) yyout(yy_text); yyout("\n");}
+state = 0; memset(yy_text, '\0', YY_SIZE); ptr = 0; is--; }}
 if (!*is) break; is++;}return 1; }
 
 

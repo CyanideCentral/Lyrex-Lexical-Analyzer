@@ -66,7 +66,10 @@ NFA * NFA_Gen::getMinNFA(string str, int len)
 	for (int i = 0; i < len&&str[i]; i++) {
 		State* next = newState();
 		atm->states->push_front(next);
-		first->edges->insert(pair<int, int>(str[i]>0 ? str[i] : -str[i], next->id));
+		int p = str[i];
+		if (p == '.') p = DOT;
+		if (p < 0)p = -p;
+		first->edges->insert(pair<int, int>(p, next->id));
 		first = next;
 	}
 	atm->end = first->id;

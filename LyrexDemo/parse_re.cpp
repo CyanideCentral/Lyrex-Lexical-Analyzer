@@ -19,19 +19,19 @@ int findPair(string str, int loc) {
 		for (loc++; str[loc]; loc++) {
 			if (str[loc] == '\"') return loc;
 		}
-		throw new ParseException("Quote mark not paired correctly.");
+		throw ParseException("Quote mark not paired correctly.");
 	}
 	else if (str[loc] == '[') {
 		for (loc++; str[loc]; loc++) {
 			if (str[loc] == ']') return loc;
 		}
-		throw new ParseException("Square braces not paired correctly.");
+		throw ParseException("Square braces not paired correctly.");
 	}
 	else if (str[loc] == '{') {
 		for (loc++; str[loc]; loc++) {
 			if (str[loc] == '}') return loc;
 		}
-		throw new ParseException("Curly braces not paired correctly.");
+		throw ParseException("Curly braces not paired correctly.");
 	}
 	else if (str[loc] == '(') {
 		int nest = 1;
@@ -40,9 +40,9 @@ int findPair(string str, int loc) {
 			if (str[loc] == ')') nest--;
 			if (!nest) return loc;
 		}
-		throw new ParseException("Square braces not paired correctly.");
+		throw ParseException("Parentheses not paired correctly.");
 	}
-	else throw new ParseException("Internal error.");
+	else throw ParseException("Internal error.");
 	//others
 
 }
@@ -58,7 +58,7 @@ NFA * REtoNFA::parseCharset(string re) {
 		/*size is unsigned int, so size - 1 cannot be -1*/
 		if (i + 1 >= re.size()) break;
 		if (re[i] == '-' && re[i - 1] < re[i + 1]) {
-			if (re[i - 1] < 0 || re[i + 1] < 0) throw new ParseException("Charset misusage.");
+			if (re[i - 1] < 0 || re[i + 1] < 0) throw ParseException("Charset misusage.");
 			for (char c = re[i - 1]; c <= re[i + 1]; c++) {
 				cset->insert(c);
 			}
@@ -117,8 +117,7 @@ NFA * REtoNFA::parseRepeated(string re, string lm) {
 	return gen->concNFA(head, tail);
 }
 
-NFA * REtoNFA::parseEntity(string re)
-{
+NFA * REtoNFA::parseEntity(string re) {
 	NFA* result;
 	if (re[0] == '(') {
 		return parse(re.substr(1, (int)re.size() - 2));
@@ -132,9 +131,11 @@ NFA * REtoNFA::parseEntity(string re)
 			result = (*dict)[var];
 			return parse(result->re);
 		}
-		else throw new ParseException(var.append(" is not found."));
+		else throw ParseException(var.append(" is not found."));
 	}
 	else if (re[0] == '"') {
+		//Dot should still be dot
+		for (int j = 1; j < re.size()-1; j++) if (re[j]==DOT) re[j] = -'.';
 		return gen->getMinNFA(re.substr(1, (int)re.size() - 2));
 	}
 	return gen->getMinNFA(re);
@@ -166,10 +167,19 @@ string REtoNFA::preprocess(string re) {
 			re = re.substr(0, i + 1).append(re.substr(i + 2));
 		}
 	}
+	/*for (int i = 0; i < re.size() - 1; i++) {
+		if (re[i] == '"') {
+			int right = findPair(re, i);
+			for (int j = i + 1; j < right; j++) if (re[j]>0) re[j] = -re[j];
+		}
+	}*/
 	int p;
 	//dot should match all single character except new line
 	string dot = "[^n]";
+
 	dot[2] = -'\n';
+	dot = "a";
+	dot[0] = 16;
 	while ((p = re.find_first_of('.')) != string::npos) {
 		re.replace(p, 1, dot);
 	}
@@ -178,7 +188,7 @@ string REtoNFA::preprocess(string re) {
 
 NFA * REtoNFA::parse(string re) {
 	if (re.size() == 0) return gen->getMinNFA();
-	if (strchr("+*?", re[0])) throw new ParseException("Wrong usage of +*?");
+	if (strchr("+*?", re[0])) throw ParseException("Wrong usage of +*?");
 	/*Position of the last char of the beginning entity*/
 	int end = 0, nested = 0;
 	if (strchr("({[\"", re[0])) {
@@ -250,7 +260,7 @@ NFA * REtoNFA::parse(string re) {
 	}
 	if (end + 1 == re.size()) return head;
 	else if (re[end + 1] == '|') {
-		if (end + 2 == re.size()) throw new ParseException("Wrong usage of bar");
+		if (end + 2 == re.size()) throw ParseException("Wrong usage of bar");
 		return gen->paralNFA(head, parse(re.substr(end + 2)));
 	}
 	else {
@@ -258,8 +268,7 @@ NFA * REtoNFA::parse(string re) {
 	}
 }
 
-NFA * REtoNFA::parse(string re, string id)
-{
+NFA * REtoNFA::parse(string re, string id) {
 	re = preprocess(re);
 	NFA* atm = gen->addTerminals(parse(re));
 	dict->insert(pair<string, NFA*>(id, atm));

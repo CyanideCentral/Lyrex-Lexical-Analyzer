@@ -25,17 +25,20 @@ int console() {
 	ifstream ifs;
 	ofstream ofs;
 	string fname;
+	int ln = 0;
 	while (1) {
 		cout << "Please enter the path of lex file:" << endl;
 		getline(cin, fname);
 		ifs.open(fname, ifstream::in);
 		if (ifs.is_open()) break;
+		cout << "File not found." << endl;
 	}
 	while (1) {
 		cout << "Path of generated source code file:" << endl;
 		getline(cin, fname);
 		ofs.open(fname, ofstream::out | ofstream::trunc);
 		if (ifs.is_open()) break;
+		cout << "Invalid path." << endl;
 	}
 	REtoNFA* r2n = new REtoNFA();
 
@@ -46,6 +49,7 @@ int console() {
 		<< "#include<stdlib.h>" << endl
 		<< "#define BUF_SIZE 1024" << endl
 		<< "#define YY_SIZE 1024" << endl
+		<< "#define DOT 16" << endl
 		<< "char yy_text[YY_SIZE];" << endl
 		<< "int yywrap();" << endl
 		<< "int outmode = 0;int printAll=0;FILE* ofp;" << endl
@@ -60,6 +64,7 @@ int console() {
 			return 1;
 		}
 		getline(ifs, line);
+		ln++;
 		line = clean(line);
 		int p = line.find("%{");
 		if (p != string::npos) {
@@ -68,10 +73,19 @@ int console() {
 		}
 		if (line.length() < 3) continue;
 		p = line.find("\t");
-		if (p == string::npos) continue;
+		if (p == string::npos) {
+			cout << "Tab delimiter missing at line " << ln << endl;
+			return 1;
+		}
 		int q;
 		for (q = p; line[q] == '\t'; q++);
-		r2n->parse(line.substr(q), line.substr(0, p));
+		try {
+			r2n->parse(line.substr(q), line.substr(0, p));
+		}
+		catch (ParseException e) {
+			cout << e.what() << "At line " << ln << endl;
+			return 1;
+		}
 	}
 	//ostringstream program;
 	ofs << line << endl;
@@ -82,6 +96,7 @@ int console() {
 			return 1;
 		}
 		getline(ifs, line);
+		ln++;
 		line = clean(line);
 		if (!line.compare("%}")) break;
 		ofs << line << endl;
@@ -92,6 +107,7 @@ int console() {
 			return 1;
 		}
 		getline(ifs, line);
+		ln++;
 		line = clean(line);
 		if (!line.compare("%%")) break;
 	}
@@ -99,6 +115,7 @@ int console() {
 	string re;
 	while (1) {
 		getline(ifs, line);
+		ln++;
 		line = clean(line);
 		if (!line.compare("%%")) break;
 		if (line.length() < 3) continue;
@@ -107,23 +124,33 @@ int console() {
 			r2n->appendCode(line);
 			continue;
 		}
-		else if (p == string::npos) continue;
+		else if (p == string::npos) {
+			cout << "Tab delimiter missing at line " << ln << endl;
+			return 1;
+		}
 		int q;
 		for (q = p; line[q] == '\t'; q++);
 		re = line.substr(0, p);
-		r2n->parseToken(re, line.substr(q));
+		try {
+			r2n->parseToken(re, line.substr(q));
+		}
+		catch (ParseException e) {
+			cout << e.what() << "At line " << ln << endl;
+			return 1;
+		}
 	}
 	//Methods block
 	r2n->toDFA()->print();
 	ofs << r2n->toDFA()->codify() << endl;
 	while (!ifs.eof()) {
 		getline(ifs, line);
+		ln++;
 		ofs << line << endl;
 	}
 	//main function
 	ofs << "int main() {char buf[BUF_SIZE];FILE* fp;while (1) {" << endl
 		<< "printf(\"Please enter the path of file to be analyzed:\\n\");" << endl
-		<< "gets_s(buf, BUF_SIZE); errno_t err = fopen_s(&fp, buf, \"r\");" << endl
+		<< "gets_s(buf, BUF_SIZE); errno_t err = fopen_s(&fp, buf, \"rb\");" << endl
 		<< "if (!err) break;else printf(\"Fail to open file.\\n\");}" << endl
 		<< "printf(\"Print matched lexeme as well? (y/N)\\n\");" << endl
 		<< "gets_s(buf, BUF_SIZE); if(buf[0]=='y'||buf[0]=='Y') printAll=1;" << endl
@@ -133,8 +160,8 @@ int console() {
 		<< "errno_t err = fopen_s(&ofp, buf, \"w\");if (err) printf(\"Invalid path.\\n\");else break;}" << endl
 		<< "fseek(fp, 0, SEEK_END);int size = ftell(fp);" << endl
 		<< "char* input_buf = (char*)malloc(size+1);fseek(fp, 0, SEEK_SET);" << endl
-		<< "fread_s(input_buf, size, sizeof(char), size, fp);" << endl
-		<< "yylex(input_buf);yywrap();getchar();return 0;}" << endl;
+		<< "fread_s(input_buf, size, sizeof(char), size, fp); input_buf[size]=0;" << endl
+		<< "yylex(input_buf);yywrap();printf(\"\\nAnalysis finished.\\n\");getchar();return 0;}" << endl;
 	return 0;
 }
 
@@ -164,6 +191,7 @@ int fmain() {
 		if (err) printf("Invalid path.\n");
 		else break;
 	}
+	//Get file size in bytes
 	fseek(fp, 0, SEEK_END);
 	int size = ftell(fp);
 	char* input_buf = (char*)malloc(size);

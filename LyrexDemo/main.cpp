@@ -31,17 +31,18 @@ void test() {
 	//atm->print();
 }
 
-const char* funfun() {
-	const char* str = "hello";
-	return "hello";
-}
-void fun(const char* str) {
-	printf("%s", str);
+void fun() {
+	try {
+		throw ParseException("shit");
+	}
+	catch (...) {
+		cout << "fuck";
+	}
 }
 
 int main() {
 	//test();
-	//fun(funfun());
+	//fun();
 	console();
 	getchar();
 	return 0;

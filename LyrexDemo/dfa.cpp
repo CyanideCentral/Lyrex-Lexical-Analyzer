@@ -56,16 +56,67 @@ string DFA::codify() {
 		os << (i + 1 == states->size() ? "};" : ", ") << endl;
 	}
 	//yylex function
-	os << "int yylex(char* is) {int state = 0, ptr = 0, ns=0;while (*is) {ns=dfa[state][*is];" << endl
-		<< "if(ns >= 0) { state = ns; yy_text[ptr++] = *is; yy_text[ptr] = 0; }" << endl
-		<< "else {if (state == 0) { if (*is == '\\0') return 0; else return 1; }" << endl
-		<< "else if (dfa[state][0]<0) { return 1; }" << endl
+	os << "int yylex(char* is) {int state = 0, ptr = 0, ns=0;char* zero=is;while (1) {ns=dfa[state][*is]; if (!*is) ns = state;" << endl
+		<< "if (ns < 0 && dfa[state][DOT] >= 0) ns = dfa[state][DOT];" << endl
+		<< "if(ns >= 0 && *is) { state = ns; yy_text[ptr++] = *is; yy_text[ptr] = 0; }" << endl
+		<< "else {if (state == 0) { if (*is == '\\0') return 0; else{ printf(\"Unexepcted character at %d.\\n\", is-zero); return 1;} }" << endl
+		<< "else if (dfa[state][0]<0) { printf(\"Incomplete token at %d.\\n\", is-zero); return 1; }" << endl
 		<< "else {const char* t = token(state); if (*t) {" << endl
 		<< "yyout(\"<\"); yyout(token(state)); yyout(\">\");" << endl
 		<< "if (printAll) yyout(yy_text); yyout(\"\\n\");}" << endl
 		<< "state = 0; memset(yy_text, '\\0', YY_SIZE); ptr = 0; is--;}}" << endl
 		<< "if (!*is) break; is++;}return 1; }" << endl;
 	return os.str();
+}
+
+void DFA::minimize() {
+	vector<unordered_set<int>*>* ptt = new vector<unordered_set<int>*>;
+	unordered_map<int, int> loc = unordered_map<int, int>();
+	//Partition by different accepting state
+	for (int i = 0; i < states->size(); i++) {
+		bool fit = false;
+		for (int j = 0; j < ptt->size();j++) {
+			if ((*states)[*((*ptt)[j]->begin())]->code.compare((*states)[i]->code) == 0) {
+				fit = true;
+				(*ptt)[j]->insert(i);
+				loc[i] = j;
+				break;
+			}
+		}
+		if (!fit) {
+			unordered_set<int>* s = new unordered_set<int>;
+			s->insert(i);
+			ptt->push_back(s);
+			loc[i] = ptt->size() - 1;
+		}
+	}
+	bool min = false;
+	while (!min) {
+		min = true;
+		int i = 0;
+		while (1) {
+			if (i >= ptt->size()) break;
+			unordered_set<int>* s = (*ptt)[i];
+			vector<unordered_set<int>*>* sub = new vector<unordered_set<int>*>;
+			for (unordered_set<int>::iterator it = s->begin(); it != s->end();it++) {
+				bool fit = false;
+				for (int j = 0; j < ptt->size(); j++) {
+					if ((*states)[*((*ptt)[j]->begin())]->code.compare((*states)[i]->code) == 0) {
+						fit = true;
+						(*ptt)[j]->insert(i);
+						loc[i] = j;
+						break;
+					}
+				}
+				if (!fit) {
+					unordered_set<int>* s = new unordered_set<int>;
+					s->insert(i);
+					ptt->push_back(s);
+					loc[i] = ptt->size() - 1;
+				}
+			}
+		}
+	}
 }
 
 DFA::DFA() {

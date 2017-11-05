@@ -8,6 +8,7 @@
 #include<unordered_set>
 #include<unordered_map>
 
+#define DOT 16
 #define START_STATE -1
 #define NORMAL_STATE 0
 #define ACCEPTING_STATE 1
@@ -81,7 +82,7 @@ public:
 };
 
 /*Find the position of the matching brace of the given character*/
-int findPair(string str, int loc);
+int findPair(string str, int loc) throw (ParseException);
 
 class DState {
 private:
@@ -104,6 +105,7 @@ public:
 	DState* newDState();
 	void print();
 	string codify();
+	void minimize();
 };
 
 class REtoNFA {

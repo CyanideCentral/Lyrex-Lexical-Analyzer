@@ -20,7 +20,7 @@ DState * DFA::newDState() {
 void DFA::print() {
 	//cout << tokenMap->begin()->first << endl;
 	bool min = false;
-	if (!states->empty() && (*states)[0]->nstates) {
+	if (!states->empty() && !(*states)[0]->nstates) {
 		min = true;
 		cout << "Minimized DFA:" << endl;
 	}
@@ -157,14 +157,33 @@ DFA* DFA::minimize() {
 		}
 	}
 	vector<DState*>* m = new vector<DState*>;
+	int start = loc[0];
 	for (int i = 0; i < ptt->size(); i++) {
 		DState* ds = new DState;
 		ds->id = i;
 		delete ds->nstates;
 		ds->nstates = NULL;
-		unordered_map<int, int>* old = (*states)[*((*ptt)[i]->begin())]->edges;
+		DState* olds = (*states)[*((*ptt)[i]->begin())];
+		unordered_map<int, int>* old = olds->edges;
 		for (unordered_map<int, int>::iterator it = old->begin(); it != old->end(); it++) {
 			ds->edges->insert(pair<int, int>(it->first, loc[it->second]));
+		}
+		ds->code = olds->code;
+		m->push_back(ds);
+	}
+	//Move the start state to position 0
+	if (start) {
+		DState* zero = (*m)[0];
+		(*m)[0] = (*m)[start];
+		(*m)[0]->id = 0;
+		(*m)[start] = zero;
+		(*m)[start]->id = start;
+		for (int i = 0; i < m->size(); i++) {
+			unordered_map<int, int>* ed = (*m)[i]->edges;
+			for (unordered_map<int, int>::iterator it = ed->begin(); it != ed->end(); it++) {
+				if (it->second == 0) (*ed)[it->first] = start;
+				else if (it->second == start) (*ed)[it->first] = 0;
+			}
 		}
 	}
 	for (int i = 0; i < states->size(); i++) delete (*states)[i];

@@ -139,9 +139,10 @@ int console() {
 			return 1;
 		}
 	}
+	DFA* dfa = r2n->toDFA()->minimize();
 	//Methods block
-	r2n->toDFA()->print();
-	ofs << r2n->toDFA()->codify() << endl;
+	dfa->print();
+	ofs << dfa->codify() << endl;
 	while (!ifs.eof()) {
 		getline(ifs, line);
 		ln++;

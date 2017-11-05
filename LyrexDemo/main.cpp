@@ -41,9 +41,9 @@ void fun() {
 }
 
 int main() {
-	test();
+	//test();
 	//fun();
-	//console();
+	console();
 	getchar();
 	return 0;
 }

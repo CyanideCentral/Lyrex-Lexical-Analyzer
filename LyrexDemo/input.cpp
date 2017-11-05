@@ -7,17 +7,6 @@ string clean(string text) {
 	text.erase(0, i);
 	for (i = text.size() - 1; i >= 0 && (text[i] == ' ' || text[i] == '\t'); i--);
 	text.erase(i+1);
-	/*while (1) {
-		int p0 = text.find("/*");
-		if (p0 == string::npos) break;
-		int p1 = text.find("(comment end mark)", p0 + 2);
-		if (p0 == string::npos) {
-			cout << "Comment across different lines is not allowed." << endl;
-			text.erase(p0);
-			return text;
-		}
-		text.erase(p0, p1 + 2 - p0);
-	}*/
 	return text;
 }
 
@@ -163,41 +152,5 @@ int console() {
 		<< "char* input_buf = (char*)malloc(size+1);fseek(fp, 0, SEEK_SET);" << endl
 		<< "fread_s(input_buf, size, sizeof(char), size, fp); input_buf[size]=0;" << endl
 		<< "yylex(input_buf);yywrap();printf(\"\\nAnalysis finished.\\n\");getchar();return 0;}" << endl;
-	return 0;
-}
-
-
-int outmode = 0;
-FILE* ofp;
-void yyout(const char* token) {
-	if (outmode) printf("<%s>\n", token);
-	else fprintf(ofp, "<%s>\n", token);
-}
-int fmain() {
-	char buf[1024];
-	FILE* fp;
-	while (1) {
-		printf("Please enter the path of lex file:\n");
-		gets_s(buf, 1024);
-		errno_t err = fopen_s(&fp, buf, "r");
-		if (!err) break;
-		else printf("Fail to open file.\n");
-	}
-	while (1) {
-		printf("Print tokens in console: enter -c\n");
-		printf("Save tokens in file: enter file path\n");
-		gets_s(buf, 1024);
-		if (buf[0] == '-'&&buf[1] == 'c'&&buf[2] == '\0') outmode = 1;
-		errno_t err = fopen_s(&ofp, buf, "w");
-		if (err) printf("Invalid path.\n");
-		else break;
-	}
-	//Get file size in bytes
-	fseek(fp, 0, SEEK_END);
-	int size = ftell(fp);
-	char* input_buf = (char*)malloc(size);
-	fseek(fp, 0, SEEK_SET);
-	fread_s(input_buf, size, sizeof(char), size, fp);
-	//yylex(input_buf);
 	return 0;
 }

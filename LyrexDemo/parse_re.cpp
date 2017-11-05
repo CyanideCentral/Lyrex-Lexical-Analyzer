@@ -167,18 +167,9 @@ string REtoNFA::preprocess(string re) {
 			re = re.substr(0, i + 1).append(re.substr(i + 2));
 		}
 	}
-	/*for (int i = 0; i < re.size() - 1; i++) {
-		if (re[i] == '"') {
-			int right = findPair(re, i);
-			for (int j = i + 1; j < right; j++) if (re[j]>0) re[j] = -re[j];
-		}
-	}*/
 	int p;
 	//dot should match all single character except new line
-	string dot = "[^n]";
-
-	dot[2] = -'\n';
-	dot = "a";
+	string dot = "a";
 	dot[0] = 16;
 	while ((p = re.find_first_of('.')) != string::npos) {
 		re.replace(p, 1, dot);

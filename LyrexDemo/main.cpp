@@ -40,9 +40,9 @@ void fun(const char* str) {
 }
 
 int main() {
-	test();
+	//test();
 	//fun(funfun());
-	//console();
+	console();
 	getchar();
 	return 0;
 }

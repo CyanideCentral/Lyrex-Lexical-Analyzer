@@ -132,7 +132,7 @@ WS	[ \t\v\n\f]
 "?"					{ return "?"; }
 
 {WS}+					{ /* whitespace separates tokens */ return ""; }
-.					{ /* discard bad characters */ }
+.					{ /* discard bad characters */ return ""; }
 
 %%
 

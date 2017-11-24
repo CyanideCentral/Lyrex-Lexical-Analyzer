@@ -76,13 +76,11 @@ NFA * NFA_Gen::getMinNFA(string str, int len)
 	return atm;
 }
 
-NFA * NFA_Gen::getMinNFA(string str)
-{
+NFA * NFA_Gen::getMinNFA(string str) {
 	return getMinNFA(str, str.size());
 }
 
-NFA * NFA_Gen::getMinNFA()
-{
+NFA * NFA_Gen::getMinNFA() {
 	return getMinNFA("", 0);
 }
 

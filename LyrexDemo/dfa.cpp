@@ -3,6 +3,7 @@
 DState::DState() {
 	nstates = new unordered_set<int>;
 	edges = new unordered_map<int, int>;
+	code = string();
 }
 
 DState::~DState() {
@@ -47,7 +48,7 @@ string DFA::codify() {
 		DState* ds = (*states)[i];
 		if (ds->code.length()) os << "case " << ds->id << ": " << ds->code << "break;" << endl;
 	}
-	os << "} return "";}";
+	os << "} return \"\";}";
 	//DFA array
 	os << "int dfa[][128]={";
 	for (int i = 0; i < states->size(); i++) {
@@ -234,10 +235,13 @@ DFA * REtoNFA::toDFA() {
 				cur->edges->insert(pair<int, int>(*it, created->id));
 				for (unordered_set<int>::iterator it = target->begin(); it != target->end(); it++) {
 					if (tokenMap->find(*it) != tokenMap->end()) {
-						created->code = tokenMap->at(*it);
-						break;
+						if (created->code.empty()) created->code = tokenMap->at(*it);
+						else {
+							int diff1 = distance(tokenList->begin(), find(tokenList->begin(), tokenList->end(), created->code));
+							int diff2 = distance(tokenList->begin(), find(tokenList->begin(), tokenList->end(), tokenMap->at(*it)));
+							if (diff2 < diff1) created->code = tokenMap->at(*it);
+						}
 					}
-					else created->code = "";
 				}
 			}
 			delete target;
@@ -245,6 +249,7 @@ DFA * REtoNFA::toDFA() {
 		index++;
 		if (index >= dfa->states->size()) break;
 	}
+	dfa->print();
 	return dfa;
 }
 

@@ -45,7 +45,7 @@ int console() {
 		<< "void yyout(const char* str) {" << endl
 		<< "if (outmode) printf(\"%s\", str);else fprintf(ofp, \"%s\", str);}" << endl
 		<< "void printToken(const char* token) {" << endl
-		<< "if (outmode) printf(\"<%s>\\n\", token);else fprintf(ofp, \"<%s>\\n\", token);}" << endl;
+		<< "if (outmode) printf(\"%s \\n\", token);else fprintf(ofp, \"%s \\n\", token);}" << endl;
 	//Definition block
 	while (1) {
 		if (ifs.eof()) {

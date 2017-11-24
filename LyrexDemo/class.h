@@ -114,7 +114,10 @@ private:
 	unordered_map<string, NFA*>* dict;
 	/*mapping of state id to token function code*/
 	unordered_set<int>* accStates;
+	//mapping from NFA state to token
 	unordered_map<int, string>* tokenMap;
+	//The order of tokens in lex file
+	vector<string>* tokenList;
 	NFA_Gen* gen;
 	NFA* whole;
 	DFA* dfa;

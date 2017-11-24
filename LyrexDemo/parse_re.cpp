@@ -272,6 +272,7 @@ void REtoNFA::parseToken(string re, string code) {
 	NFA* atm = gen->addTerminals(parse(re));
 	atm->re = re;
 	tokenMap->insert(pair<int, string>(atm->end, code));
+	tokenList->push_back(code);
 	lastState = atm->end;
 	accStates->insert(atm->end);
 	if (!whole) {
@@ -339,6 +340,7 @@ REtoNFA::REtoNFA() {
 	dfa = new DFA();
 	accStates = new unordered_set<int>;
 	tokenMap = new unordered_map<int, string>;
+	tokenList = new vector<string>;
 }
 
 REtoNFA::~REtoNFA() {
@@ -347,4 +349,5 @@ REtoNFA::~REtoNFA() {
 	/*Do not delete dfa or nfa*/
 	delete accStates;
 	delete tokenMap;
+	delete tokenList;
 }
